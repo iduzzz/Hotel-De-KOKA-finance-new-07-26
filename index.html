@@ -3,1875 +3,1721 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Хотел Де КОКА - Финансии</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <title>Hotel De KOKA - Financial Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #3b82f6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #06b6d4;
+            --dark: #1e293b;
+            --dark-light: #334155;
+            --gray: #64748b;
+            --gray-light: #94a3b8;
+            --gray-lighter: #cbd5e1;
+            --gray-lightest: #f1f5f9;
+            --white: #ffffff;
+            --sidebar-width: 280px;
+            --header-height: 70px;
         }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-lightest);
+            color: var(--dark);
+            overflow-x: hidden;
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            padding: 30px;
+        .sidebar {
+            position: fixed; left: 0; top: 0;
+            width: var(--sidebar-width); height: 100vh;
+            background: var(--white);
+            border-right: 1px solid var(--gray-lighter);
+            z-index: 100;
+            display: flex; flex-direction: column;
         }
-
-        h1 {
-            text-align: center;
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-
-        /* Sync Indicator Styles */
-        #sync-indicator {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10000;
-            transition: all 0.3s ease;
-            display: none;
-        }
-
-        .form-section {
-            background: #f8f9fa;
-            padding: 25px;
+        .sidebar-header { padding: 25px 24px; border-bottom: 1px solid var(--gray-lighter); }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             border-radius: 10px;
-            margin-bottom: 30px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
         }
-
-        .form-grid {
+        .logo-text h1 { font-size: 18px; font-weight: 700; color: var(--dark); letter-spacing: -0.3px; }
+        .logo-text p {
+            font-size: 11px; color: var(--gray);
+            font-weight: 500; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-top: 2px;
+        }
+        .sidebar-nav { flex: 1; padding: 20px 12px; overflow-y: auto; }
+        .nav-section { margin-bottom: 28px; }
+        .nav-section-title {
+            font-size: 11px; font-weight: 700; color: var(--gray);
+            text-transform: uppercase; letter-spacing: 0.8px;
+            padding: 0 12px; margin-bottom: 8px;
+        }
+        .nav-item {
+            display: flex; align-items: center;
+            padding: 12px 14px; margin-bottom: 4px;
+            border-radius: 10px; cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--gray); font-weight: 500;
+            font-size: 14px; gap: 12px;
+        }
+        .nav-item:hover { background: var(--gray-lightest); color: var(--dark); }
+        .nav-item.active { background: var(--primary-color); color: var(--white); }
+        .nav-item-icon { font-size: 20px; width: 24px; text-align: center; }
+        .sidebar-footer { padding: 20px; border-top: 1px solid var(--gray-lighter); }
+        .user-info {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px; background: var(--gray-lightest);
+            border-radius: 10px;
+        }
+        .user-avatar {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--white); font-weight: 700; font-size: 16px;
+        }
+        .user-details h4 { font-size: 13px; font-weight: 600; color: var(--dark); }
+        .user-details p { font-size: 11px; color: var(--gray); }
+        .main-content { margin-left: var(--sidebar-width); min-height: 100vh; }
+        .header {
+            height: var(--header-height); background: var(--white);
+            border-bottom: 1px solid var(--gray-lighter);
+            padding: 0 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .header-left h2 { font-size: 24px; font-weight: 700; color: var(--dark); }
+        .header-left p { font-size: 13px; color: var(--gray); margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .header-date {
+            padding: 10px 18px; background: var(--gray-lightest);
+            border-radius: 10px; font-size: 13px;
+            font-weight: 600; color: var(--dark);
+        }
+        .sync-status {
+            padding: 6px 12px; border-radius: 20px;
+            font-size: 12px; font-weight: 600;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .sync-status.connected { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .sync-status.disconnected { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+        .sync-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .btn-export-header {
+            padding: 10px 20px; background: var(--primary-color);
+            color: var(--white); border: none;
+            border-radius: 10px; font-size: 13px;
+            font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-export-header:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .content { padding: 32px; }
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px; margin-bottom: 32px;
         }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            position: relative;
+        .stat-card {
+            background: var(--white); padding: 24px;
+            border-radius: 14px;
+            border: 1px solid var(--gray-lighter);
+            transition: all 0.3s ease;
         }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        label {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #333;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="date"],
-        select,
-        textarea {
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        input[type="date"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
+        .stat-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
             transform: translateY(-2px);
         }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
+        .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .stat-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
         }
-
-        .btn-danger:hover {
-            background: #c0392b;
+        .stat-icon.revenue { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .stat-icon.expense { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+        .stat-icon.balance { background: rgba(37, 99, 235, 0.1); color: var(--primary-color); }
+        .stat-title {
+            font-size: 13px; font-weight: 600; color: var(--gray);
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
-
-        .btn-success {
-            background: #27ae60;
-            color: white;
+        .stat-value { font-size: 32px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+        .stat-change { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .stat-change.positive { color: var(--success-color); }
+        .stat-change.negative { color: var(--danger-color); }
+        .card {
+            background: var(--white); border-radius: 14px;
+            border: 1px solid var(--gray-lighter);
+            overflow: hidden; margin-bottom: 24px;
         }
-
-        .btn-success:hover {
-            background: #229954;
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-lighter);
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .btn-warning {
-            background: #f39c12;
-            color: white;
+        .card-title { font-size: 18px; font-weight: 700; color: var(--dark); }
+        .card-body { padding: 24px; }
+        .form-grid { display: grid; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-label { font-size: 13px; font-weight: 600; color: var(--dark); }
+        .form-input, .form-select, .form-textarea {
+            padding: 12px 14px;
+            border: 1.5px solid var(--gray-lighter);
+            border-radius: 10px; font-size: 14px;
+            font-family: inherit; transition: all 0.2s ease;
+            background: var(--white); color: var(--dark);
         }
-
-        .btn-warning:hover {
-            background: #e67e22;
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
-
-        .btn-info {
-            background: #3498db;
-            color: white;
+        .form-textarea { resize: vertical; min-height: 80px; }
+        .btn {
+            padding: 12px 24px; border: none;
+            border-radius: 10px; font-size: 14px;
+            font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex; align-items: center;
+            justify-content: center; gap: 8px;
         }
-
-        .btn-info:hover {
-            background: #2980b9;
-        }
-
-        .btn-small {
-            font-size: 12px;
-            padding: 6px 12px;
-            white-space: nowrap;
-        }
-
-        .btn-table {
-            font-size: 10px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            white-space: nowrap;
-        }
-
-        .filter-section {
-            background: #e8f4f8;
-            padding: 25px;
+        .btn-primary { background: var(--primary-color); color: var(--white); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+        .btn-success { background: var(--success-color); color: var(--white); }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: var(--danger-color); color: var(--white); }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: var(--gray-lightest); color: var(--dark); }
+        .btn-secondary:hover { background: var(--gray-lighter); }
+        .btn-sm { padding: 8px 14px; font-size: 13px; }
+        .btn-block { width: 100%; }
+        .transaction-list { display: flex; flex-direction: column; gap: 12px; }
+        .transaction-item {
+            padding: 16px; background: var(--gray-lightest);
             border-radius: 10px;
-            margin-bottom: 30px;
+            display: grid; grid-template-columns: auto 1fr auto auto;
+            gap: 16px; align-items: center;
+            transition: all 0.2s ease;
         }
-
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .search-box {
-            grid-column: 1 / -1;
-        }
-
-        .table-section {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th {
-            background: #667eea;
-            color: white;
-            padding: 12px 8px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        td {
-            padding: 10px 8px;
-            border-bottom: 1px solid #ddd;
-            font-size: 14px;
-        }
-
-        tr:hover {
-            background: #f8f9fa;
-        }
-
-        .status-paid {
-            color: #27ae60;
-            font-weight: 600;
-        }
-
-        .status-unpaid {
-            color: #e74c3c;
-            font-weight: 600;
-        }
-
-        .status-partial {
-            color: #f39c12;
-            font-weight: 600;
-        }
-
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .summary-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+        .transaction-item:hover { background: #e2e8f0; }
+        .transaction-icon {
+            width: 44px; height: 44px;
             border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
         }
-
-        .summary-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        .transaction-icon.income { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .transaction-icon.expense { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+        .transaction-details { flex: 1; }
+        .transaction-category { font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 4px; }
+        .transaction-meta { font-size: 12px; color: var(--gray); display: flex; align-items: center; gap: 12px; }
+        .transaction-amount { font-size: 18px; font-weight: 700; min-width: 140px; text-align: right; }
+        .transaction-amount.income { color: var(--success-color); }
+        .transaction-amount.expense { color: var(--danger-color); }
+        .transaction-actions { display: flex; gap: 6px; }
+        .action-btn {
+            width: 34px; height: 34px; border: none;
+            border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease; font-size: 16px;
         }
-
-        .summary-card.active {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-            box-shadow: 0 8px 20px rgba(243, 156, 18, 0.5);
-        }
-
-        .summary-card h3 {
-            font-size: 1em;
-            margin-bottom: 10px;
-            opacity: 0.9;
-        }
-
-        .summary-card p {
-            font-size: clamp(1.1em, 1.6vw, 1.7em);
-            font-weight: 700;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.2;
-        }
-
-        .actions {
-            display: flex;
-            gap: 5px;
-            flex-wrap: nowrap;
-            justify-content: flex-start;
-            white-space: nowrap;
-            min-width: 130px;
-        }
-
+        .action-btn.edit { background: rgba(6, 182, 212, 0.1); color: var(--info-color); }
+        .action-btn.edit:hover { background: var(--info-color); color: var(--white); }
+        .action-btn.delete { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+        .action-btn.delete:hover { background: var(--danger-color); color: var(--white); }
         .modal {
-            display: none;
-            position: fixed;
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
             z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            overflow-y: auto;
+            align-items: center; justify-content: center; padding: 20px;
         }
-
+        .modal.active { display: flex; }
         .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 80vh;
+            background: var(--white); border-radius: 16px;
+            max-width: 500px; width: 100%; max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
         }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .close {
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #aaa;
+        .modal-header { padding: 24px; border-bottom: 1px solid var(--gray-lighter); }
+        .modal-title { font-size: 20px; font-weight: 700; color: var(--dark); }
+        .modal-body { padding: 24px; }
+        .modal-footer {
+            padding: 20px 24px; border-top: 1px solid var(--gray-lighter);
+            display: flex; gap: 12px; justify-content: flex-end;
         }
-
-        .close:hover {
-            color: #000;
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-icon { font-size: 64px; opacity: 0.3; margin-bottom: 16px; }
+        .empty-text { font-size: 15px; color: var(--gray); }
+        .chart-container { position: relative; height: 300px; margin-top: 20px; }
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px; margin-bottom: 24px;
         }
-
-        .history-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            max-height: 300px;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            margin-top: 5px;
+        .quick-stat {
+            padding: 16px; background: var(--gray-lightest);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
         }
-
-        .history-dropdown.show {
-            display: block;
+        .quick-stat-label { font-size: 12px; font-weight: 600; color: var(--gray); margin-bottom: 6px; }
+        .quick-stat-value { font-size: 22px; font-weight: 700; color: var(--dark); }
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
         }
-
-        .history-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            transition: background 0.2s;
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--gray-lightest); }
+        ::-webkit-scrollbar-thumb { background: var(--gray-lighter); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gray); }
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+        .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 768px) { .two-column { grid-template-columns: 1fr; } }
+        
+        /* Loading spinner */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999;
         }
-
-        .history-item:hover {
-            background: #f0f4ff;
+        .loading-spinner {
+            width: 50px; height: 50px;
+            border: 4px solid var(--gray-lighter);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
-
-        .history-item:last-child {
-            border-bottom: none;
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed; bottom: 20px; right: 20px;
+            padding: 16px 24px; border-radius: 10px;
+            color: white; font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            animation: slideUp 0.3s ease;
         }
-
-        .history-item-company {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .history-item-details {
-            font-size: 0.9em;
-            color: #666;
-        }
-
-        .history-item-account {
-            color: #667eea;
-            font-family: monospace;
-        }
-
-        .history-item-amount {
-            color: #27ae60;
-            font-weight: 600;
-        }
-
-        .history-badge {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }
-
-        .no-history {
-            padding: 15px;
-            text-align: center;
-            color: #999;
-            font-style: italic;
-        }
-
-        .payment-info {
-            background: #f0f4ff;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-        }
-
-        .payment-info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .payment-info-row:last-child {
-            border-bottom: none;
-            font-weight: 700;
-            font-size: 1.1em;
-            color: #667eea;
-            margin-top: 10px;
-            padding-top: 15px;
-            border-top: 2px solid #667eea;
-        }
-
-        .payments-list {
-            margin-top: 20px;
-        }
-
-        .payment-item {
-            background: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .payment-item.editing {
-            border: 2px solid #667eea;
-            background: #f0f4ff;
-        }
-
-        .payment-item-info {
-            flex: 1;
-        }
-
-        .payment-item-date {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .payment-item-amount {
-            color: #27ae60;
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-
-        .payment-edit-form {
-            display: none;
-            flex: 1;
-            gap: 10px;
-        }
-
-        .payment-edit-form.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 25px;
-            background: #e0e0e0;
-            border-radius: 12px;
-            overflow: hidden;
-            margin: 15px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-
-        .auth-bar {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #666;
-            flex-wrap: wrap;
-        }
-
-        #login-overlay {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: 20000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .login-box h2 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .login-box p {
-            color: #666;
-            margin-bottom: 25px;
-        }
-
-        .login-box .btn {
-            font-size: 16px;
-            padding: 12px 24px;
-        }
-
-        #login-error {
-            color: #e74c3c;
-            margin-top: 15px;
-            font-size: 14px;
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 1.8em;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .filter-grid {
-                grid-template-columns: 1fr;
-            }
-
-            table {
-                font-size: 12px;
-            }
-
-            th, td {
-                padding: 8px 4px;
-            }
-
-            #sync-indicator {
-                bottom: 10px;
-                right: 10px;
-                font-size: 12px;
-                padding: 8px 12px;
-            }
+        .toast.success { background: var(--success-color); }
+        .toast.error { background: var(--danger-color); }
+        .toast.info { background: var(--info-color); }
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <!-- Login Overlay -->
-    <div id="login-overlay">
-        <div class="login-box">
-            <h2>🏨 Хотел Де КОКА</h2>
-            <p>Најавете се за пристап до фактурите</p>
-            <button class="btn btn-primary" onclick="signIn()">Најава со Google</button>
-            <div id="login-error"></div>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div style="text-align: center;">
+            <div class="loading-spinner"></div>
+            <p style="margin-top: 16px; color: var(--gray); font-weight: 500;">Се поврзува со Firebase...</p>
         </div>
     </div>
 
-    <!-- Sync Indicator -->
-    <div id="sync-indicator"></div>
-
-    <div class="container">
-        <h1>🏨 Хотел Де КОКА</h1>
-        <p class="subtitle">Систем за управување со фактури и плаќања</p>
-
-        <!-- Auth Bar -->
-        <div class="auth-bar">
-            <span id="user-email"></span>
-            <button class="btn btn-danger btn-small" onclick="signOut()">Одјава</button>
-        </div>
-
-        <!-- Summary Cards -->
-        <div class="summary">
-            <div class="summary-card" id="card-all" onclick="filterByStatus('all')">
-                <h3>Вкупно Фактури</h3>
-                <p id="totalInvoices">0</p>
-            </div>
-            <div class="summary-card" id="card-paid" onclick="filterByStatus('paid')">
-                <h3>✓ Платени</h3>
-                <p id="paidInvoices">0</p>
-            </div>
-            <div class="summary-card" id="card-partial" onclick="filterByStatus('partial')">
-                <h3>⚡ Делумно платени</h3>
-                <p id="partialInvoices">0</p>
-            </div>
-            <div class="summary-card" id="card-unpaid" onclick="filterByStatus('unpaid')">
-                <h3>⏳ Неплатени</h3>
-                <p id="unpaidInvoices">0</p>
-            </div>
-            <div class="summary-card">
-                <h3>💰 Вкупна Сума</h3>
-                <p id="totalAmount">0 ден</p>
-            </div>
-            <div class="summary-card">
-                <h3>💵 Платено</h3>
-                <p id="paidAmount">0 ден</p>
-            </div>
-            <div class="summary-card">
-                <h3>⏰ Неплатено</h3>
-                <p id="unpaidAmount">0 ден</p>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">🏨</div>
+                <div class="logo-text">
+                    <h1>Hotel De KOKA</h1>
+                    <p>Finance System</p>
+                </div>
             </div>
         </div>
-
-        <!-- Add Invoice Button -->
-        <div style="margin-bottom: 20px;">
-            <button class="btn btn-primary" onclick="openAddInvoiceModal()">➕ Додади Фактура</button>
-            <button class="btn btn-success" onclick="exportToExcel()">📥 Извези во Excel</button>
-            <button class="btn btn-info" onclick="showReport()">📊 Генерирај Извештај</button>
-            <button class="btn btn-warning" onclick="document.getElementById('jsonImportInput').click()">📤 Импорт JSON</button>
-            <button class="btn btn-info" onclick="exportBackupJSON()">📥 Експорт JSON (backup)</button>
-            <input type="file" id="jsonImportInput" accept=".json" style="display: none;" onchange="importFromJSON(event)">
-        </div>
-
-        <!-- Filters -->
-        <div class="filter-section">
-            <h3 style="margin-bottom: 15px; color: #333;">🔍 Филтри за пребарување</h3>
-            <div class="filter-grid">
-                <div class="form-group">
-                    <label>Година</label>
-                    <select id="filterYear">
-                        <option value="all">Сите години</option>
-                        <option value="2026" selected>2026</option>
-                        <option value="2025">2025</option>
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Статус</label>
-                    <select id="filterStatus">
-                        <option value="all">Сите</option>
-                        <option value="paid">Платени</option>
-                        <option value="partial">Делумно платени</option>
-                        <option value="unpaid">Неплатени</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Компанија</label>
-                    <input type="text" id="filterCompany" placeholder="Пребарај по име...">
-                </div>
-                <div class="form-group">
-                    <label>Број на сметка</label>
-                    <input type="text" id="filterAccount" placeholder="Пребарај по сметка...">
-                </div>
-                <div class="form-group">
-                    <label>Број на фактура</label>
-                    <input type="text" id="filterInvoiceNumber" placeholder="Број на фактура...">
-                </div>
-                <div class="form-group">
-                    <label>Од датум</label>
-                    <input type="date" id="filterDateFrom">
-                </div>
-                <div class="form-group">
-                    <label>До датум</label>
-                    <input type="date" id="filterDateTo">
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Главно</div>
+                <div class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard', this)">
+                    <span class="nav-item-icon">📊</span>
+                    <span>Dashboard</span>
                 </div>
             </div>
-            <div class="search-box">
-                <label>Глобално пребарување</label>
-                <input type="text" id="globalSearch" placeholder="Пребарувај низ сите полиња...">
-                <button type="button" class="btn btn-danger" onclick="clearFilters()" style="margin-left: 10px;">🧹 Избриши филтри</button>
+            <div class="nav-section">
+                <div class="nav-section-title">Трансакции</div>
+                <div class="nav-item" data-page="revenue" onclick="navigateTo('revenue', this)">
+                    <span class="nav-item-icon">💵</span>
+                    <span>Дневен Промет</span>
+                </div>
+                <div class="nav-item" data-page="expenses" onclick="navigateTo('expenses', this)">
+                    <span class="nav-item-icon">💸</span>
+                    <span>Трошоци</span>
+                </div>
+                <div class="nav-item" data-page="transactions" onclick="navigateTo('transactions', this)">
+                    <span class="nav-item-icon">📋</span>
+                    <span>Сите Трансакции</span>
+                </div>
             </div>
-        </div>
-
-        <!-- Table -->
-        <div class="table-section">
-            <table id="invoiceTable">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Компанија</th>
-                        <th>Број фактура</th>
-                        <th>Сметка</th>
-                        <th>Износ</th>
-                        <th>Платено</th>
-                        <th>Преостанато</th>
-                        <th>Статус</th>
-                        <th>Датум на фактура</th>
-                        <th>Рок</th>
-                        <th>Акции</th>
-                    </tr>
-                </thead>
-                <tbody id="invoiceTableBody">
-                </tbody>
-                <tfoot id="invoiceTableFoot"></tfoot>
-            </table>
+            <div class="nav-section">
+                <div class="nav-section-title">Извештаи</div>
+                <div class="nav-item" data-page="reports" onclick="navigateTo('reports', this)">
+                    <span class="nav-item-icon">📈</span>
+                    <span>Извештаи</span>
+                </div>
+                <div class="nav-item" data-page="analytics" onclick="navigateTo('analytics', this)">
+                    <span class="nav-item-icon">📉</span>
+                    <span>Аналитика</span>
+                </div>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">HD</div>
+                <div class="user-details">
+                    <h4>Hotel De KOKA</h4>
+                    <p>Administrator</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Add Invoice Modal -->
-    <div id="addInvoiceModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>➕ Додади Фактура</h2>
-                <span class="close" onclick="closeAddInvoiceModal()">&times;</span>
+    <!-- Main Content -->
+    <div class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <h2 id="pageTitle">Dashboard</h2>
+                <p id="pageSubtitle">Преглед на финансиското работење</p>
             </div>
-            <form id="invoiceForm">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Име на компанија *</label>
-                        <input type="text" id="companyName" required autocomplete="off">
-                        <div id="companyHistory" class="history-dropdown"></div>
+            <div class="header-right">
+                <div id="syncStatus" class="sync-status connected">
+                    <span class="sync-dot"></span>
+                    <span>Cloud Sync</span>
+                </div>
+                <div class="header-date" id="currentDate"></div>
+                <button class="btn-export-header" onclick="exportToExcel()">
+                    <span>📊</span>
+                    <span>Експорт</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="content">
+            <!-- Dashboard -->
+            <div id="dashboard" class="page-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div><div class="stat-title">Вкупен Промет</div></div>
+                            <div class="stat-icon revenue">💵</div>
+                        </div>
+                        <div class="stat-value" id="dashTotalRevenue">0 ден</div>
+                        <div class="stat-change positive"><span>↗</span><span>Cloud синхронизирано</span></div>
                     </div>
-                    <div class="form-group">
-                        <label>Број на фактура *</label>
-                        <input type="text" id="invoiceNumber" required>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div><div class="stat-title">Вкупни Трошоци</div></div>
+                            <div class="stat-icon expense">💸</div>
+                        </div>
+                        <div class="stat-value" id="dashTotalExpenses">0 ден</div>
+                        <div class="stat-change negative"><span>↗</span><span>Cloud синхронизирано</span></div>
                     </div>
-                    <div class="form-group">
-                        <label>Број на сметка</label>
-                        <input type="text" id="bankAccount">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div><div class="stat-title">Нето Биланс</div></div>
+                            <div class="stat-icon balance">💰</div>
+                        </div>
+                        <div class="stat-value" id="dashNetBalance">0 ден</div>
+                        <div class="stat-change positive"><span>↗</span><span>Real-time</span></div>
                     </div>
-                    <div class="form-group">
-                        <label>Износ (ден) *</label>
-                        <input type="number" id="amount" step="0.01" required>
+                </div>
+                <div class="two-column">
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">Промет vs Трошоци</div></div>
+                        <div class="card-body"><div class="chart-container"><canvas id="dashMainChart"></canvas></div></div>
                     </div>
-                    <div class="form-group">
-                        <label>Датум на фактура *</label>
-                        <input type="date" id="entryDate" required>
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">Трошоци по Категорија</div></div>
+                        <div class="card-body"><div class="chart-container"><canvas id="dashCategoryChart"></canvas></div></div>
                     </div>
-                    <div class="form-group">
-                        <label>Рок за плаќање *</label>
-                        <input type="date" id="dueDate" required>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Последни Трансакции</div>
+                        <button class="btn btn-secondary btn-sm" onclick="navigateTo('transactions', document.querySelector('[data-page=transactions]'))">Види Сè</button>
                     </div>
-                    <div class="form-group full-width">
-                        <label>Забелешки</label>
-                        <textarea id="notes" rows="3"></textarea>
-                    </div>
-                    <div class="form-group full-width">
-                        <label style="margin-bottom: 10px;">Статус на плаќање *</label>
-                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="radio" name="initialStatus" value="unpaid" checked>
-                                <span>⏳ Неплатена</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="radio" name="initialStatus" value="paid">
-                                <span>✓ Платена (цела сума)</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="radio" name="initialStatus" value="partial">
-                                <span>⚡ Делумно платена</span>
-                            </label>
+                    <div class="card-body"><div id="dashRecentTransactions" class="transaction-list"></div></div>
+                </div>
+            </div>
+
+            <!-- Revenue Page -->
+            <div id="revenue" class="page-section">
+                <div class="two-column">
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">Запиши Дневен Промет</div></div>
+                        <div class="card-body">
+                            <form id="revenueForm" class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Датум</label>
+                                    <input type="date" id="revenueDate" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Извор на Промет</label>
+                                    <select id="revenueSource" class="form-select" required>
+                                        <option value="">Избери извор...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Износ (ден)</label>
+                                    <input type="number" id="revenueTotalAmount" class="form-input" step="0.01" placeholder="0.00" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Забелешка (опционално)</label>
+                                    <textarea id="revenueDescription" class="form-textarea"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-block">
+                                    <span>✓</span><span>Зачувај Промет</span>
+                                </button>
+                            </form>
+                            <div style="margin-top: 32px; padding-top: 24px; border-top: 2px solid var(--gray-lighter);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                    <h3 style="font-size: 16px; font-weight: 700; color: var(--dark);">Управување со Извори</h3>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="showAddRevenueSourceDialog()">
+                                        <span>+</span><span>Додади</span>
+                                    </button>
+                                </div>
+                                <div id="revenueSourceManager" style="display: grid; gap: 8px; max-height: 300px; overflow-y: auto;"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group full-width" id="partialPaidGroup" style="display: none;">
-                        <label>Делумно платена сума (ден)</label>
-                        <input type="number" id="partialPaidAmount" step="0.01" min="0">
+                    <div>
+                        <div class="quick-stats">
+                            <div class="quick-stat" style="border-left-color: var(--success-color)">
+                                <div class="quick-stat-label">Вкупен Промет</div>
+                                <div class="quick-stat-value" id="revTotalRevenue">0 ден</div>
+                            </div>
+                        </div>
+                        <div class="card" style="margin-top: 16px;">
+                            <div class="card-header"><div class="card-title">Распоред по Извор</div></div>
+                            <div class="card-body">
+                                <div id="revenueSourceBreakdown" style="display: grid; gap: 12px;"></div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><div class="card-title">Последни Записи</div></div>
+                            <div class="card-body">
+                                <div id="revenueList" class="transaction-list" style="max-height: 500px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
                     </div>
-                    <input type="checkbox" id="isPaidCash" style="display: none;">
                 </div>
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button type="submit" class="btn btn-success">✓ Зачувај</button>
-                    <button type="button" class="btn btn-danger" onclick="closeAddInvoiceModal()">✗ Откажи</button>
+            </div>
+
+            <!-- Expenses Page -->
+            <div id="expenses" class="page-section">
+                <div class="two-column">
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">Запиши Трошок</div></div>
+                        <div class="card-body">
+                            <form id="expenseForm" class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Датум</label>
+                                    <input type="date" id="expenseDate" class="form-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Категорија</label>
+                                    <select id="expenseCategory" class="form-select" required>
+                                        <option value="">Избери...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Износ (ден)</label>
+                                    <input type="number" id="expenseAmount" class="form-input" step="0.01" placeholder="0.00" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Детален Опис (опционално)</label>
+                                    <textarea id="expenseDescription" class="form-textarea" placeholder="Добавувач, фактура бр., детали..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-danger btn-block">
+                                    <span>✓</span><span>Зачувај Трошок</span>
+                                </button>
+                            </form>
+                            <div style="margin-top: 32px; padding-top: 24px; border-top: 2px solid var(--gray-lighter);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                    <h3 style="font-size: 16px; font-weight: 700; color: var(--dark);">Управување со Категории</h3>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="showAddExpenseCategoryDialog()">
+                                        <span>+</span><span>Додади</span>
+                                    </button>
+                                </div>
+                                <div id="expenseCategoryManager" style="display: grid; gap: 8px; max-height: 300px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="quick-stats">
+                            <div class="quick-stat" style="border-left-color: var(--danger-color)">
+                                <div class="quick-stat-label">Вкупни Трошоци</div>
+                                <div class="quick-stat-value" id="expTotalExpenses">0 ден</div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><div class="card-title">По Категорија</div></div>
+                            <div class="card-body"><div id="expenseBreakdown"></div></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><div class="card-title">Последни Трошоци</div></div>
+                            <div class="card-body">
+                                <div id="expenseList" class="transaction-list" style="max-height: 400px; overflow-y: auto;"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </div>
+
+            <!-- All Transactions -->
+            <div id="transactions" class="page-section">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Сите Трансакции</div>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-secondary btn-sm" onclick="exportToExcel()">📊 Excel</button>
+                            <button class="btn btn-secondary btn-sm" onclick="exportToPDF()">📄 PDF</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+                            <div class="form-group">
+                                <label class="form-label">Тип</label>
+                                <select id="filterType" class="form-select">
+                                    <option value="">Сите</option>
+                                    <option value="income">Промет</option>
+                                    <option value="expense">Трошоци</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Категорија</label>
+                                <select id="filterCategory" class="form-select"><option value="">Сите</option></select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Од Датум</label>
+                                <input type="date" id="filterDateFrom" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">До Датум</label>
+                                <input type="date" id="filterDateTo" class="form-input">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                            <button class="btn btn-primary btn-sm" onclick="applyFilters()">Примени</button>
+                            <button class="btn btn-secondary btn-sm" onclick="resetFilters()">Ресетирај</button>
+                        </div>
+                        <div id="allTransactionsList" class="transaction-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports -->
+            <div id="reports" class="page-section">
+                <div class="card">
+                    <div class="card-header"><div class="card-title">Периодични Извештаи</div></div>
+                    <div class="card-body">
+                        <div style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+                            <button class="btn btn-secondary btn-sm" onclick="selectPeriod('today')">Денес</button>
+                            <button class="btn btn-secondary btn-sm" onclick="selectPeriod('week')">Недела</button>
+                            <button class="btn btn-secondary btn-sm" onclick="selectPeriod('month')">Месец</button>
+                            <button class="btn btn-secondary btn-sm" onclick="selectPeriod('year')">Година</button>
+                            <button class="btn btn-secondary btn-sm" onclick="selectPeriod('all')">Сè</button>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card"><div class="stat-title">Промет</div><div class="stat-value" id="reportIncome">0 ден</div></div>
+                            <div class="stat-card"><div class="stat-title">Трошоци</div><div class="stat-value" id="reportExpenses">0 ден</div></div>
+                            <div class="stat-card"><div class="stat-title">Биланс</div><div class="stat-value" id="reportBalance">0 ден</div></div>
+                            <div class="stat-card"><div class="stat-title">Трансакции</div><div class="stat-value" id="reportCount">0</div></div>
+                        </div>
+                        <div class="card" style="margin-top: 24px;">
+                            <div class="card-header"><div class="card-title">Детален Распоред</div></div>
+                            <div class="card-body"><div id="reportBreakdown"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics -->
+            <div id="analytics" class="page-section">
+                <div class="card">
+                    <div class="card-header"><div class="card-title">Месечен Тренд</div></div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 400px;"><canvas id="trendChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Edit Invoice Modal -->
-    <div id="editModal" class="modal">
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>✏️ Измени Фактура</h2>
-                <span class="close" onclick="closeEditModal()">&times;</span>
-            </div>
+            <div class="modal-header"><div class="modal-title">Измени Трансакција</div></div>
             <form id="editForm">
-                <input type="hidden" id="editIndex">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Име на компанија *</label>
-                        <input type="text" id="editCompanyName" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Број на фактура *</label>
-                        <input type="text" id="editInvoiceNumber" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Број на сметка</label>
-                        <input type="text" id="editBankAccount">
-                    </div>
-                    <div class="form-group">
-                        <label>Износ (ден) *</label>
-                        <input type="number" id="editAmount" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Датум на фактура *</label>
-                        <input type="date" id="editEntryDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Рок за плаќање *</label>
-                        <input type="date" id="editDueDate" required>
-                    </div>
-                    <div class="form-group full-width">
-                        <label>Забелешки</label>
-                        <textarea id="editNotes" rows="3"></textarea>
+                <div class="modal-body">
+                    <input type="hidden" id="editId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Датум</label>
+                            <input type="date" id="editDate" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Тип</label>
+                            <select id="editType" class="form-select" required>
+                                <option value="income">Промет</option>
+                                <option value="expense">Трошок</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Категорија</label>
+                            <select id="editCategory" class="form-select" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Износ</label>
+                            <input type="number" id="editAmount" class="form-input" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Опис</label>
+                            <textarea id="editDescription" class="form-textarea"></textarea>
+                        </div>
                     </div>
                 </div>
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button type="submit" class="btn btn-success">✓ Зачувај</button>
-                    <button type="button" class="btn btn-danger" onclick="closeEditModal()">✗ Откажи</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Откажи</button>
+                    <button type="submit" class="btn btn-primary">Зачувај</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Payment Modal -->
-    <div id="paymentModal" class="modal">
+    <!-- Add Category Modal -->
+    <div class="modal" id="addCategoryModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>💰 Управување со плаќања</h2>
-                <span class="close" onclick="closePaymentModal()">&times;</span>
+            <div class="modal-header"><div class="modal-title">Додади Нова Категорија</div></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Име на Категорија</label>
+                    <input type="text" id="newCategoryName" class="form-input" placeholder="На пример: Вода, Греење...">
+                </div>
             </div>
-            <div id="paymentModalContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeAddCategoryDialog()">Откажи</button>
+                <button type="button" class="btn btn-primary" onclick="saveNewCategory()">Додади</button>
+            </div>
         </div>
     </div>
 
-    <!-- Report Modal -->
-    <div id="reportModal" class="modal">
+    <!-- Edit Category Modal -->
+    <div class="modal" id="editCategoryModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>📊 Извештај</h2>
-                <span class="close" onclick="closeReportModal()">&times;</span>
+            <div class="modal-header"><div class="modal-title">Измени Категорија</div></div>
+            <div class="modal-body">
+                <input type="hidden" id="editCategoryOldName">
+                <div class="form-group">
+                    <label class="form-label">Ново Име</label>
+                    <input type="text" id="editCategoryNewName" class="form-input">
+                </div>
             </div>
-            <div id="reportContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditCategoryDialog()">Откажи</button>
+                <button type="button" class="btn btn-primary" onclick="saveEditedCategory()">Зачувај</button>
+            </div>
         </div>
     </div>
 
-<script>
-// ===== FIREBASE CONFIGURATION =====
-const firebaseConfig = {
-    apiKey: "AIzaSyDSSfedbCVPoGCJ2byj2WYjLsKzYCitxNM",
-    authDomain: "hotel-de-koka-fakturu.firebaseapp.com",
-    projectId: "hotel-de-koka-fakturu",
-    storageBucket: "hotel-de-koka-fakturu.firebasestorage.app",
-    messagingSenderId: "795774054020",
-    appId: "1:795774054020:web:94685091a9e79312131cd1"
-};
-
-// Дозволени емаили (Google најава). Празна листа = секој најавен Google корисник има пристап.
-const ALLOWED_EMAILS = [
-    'iduzzz@gmail.com',
-];
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const invoicesRef = db.collection('invoices');
-let unsubscribeInvoices = null;
-
-// Еднократно чистење на старите локални податоци (Google Sheets верзија)
-try {
-    localStorage.removeItem('hotelkoka_invoices');
-    localStorage.removeItem('hotelkoka_invoices_version');
-} catch (e) {}
-
-// ===== SYNC INDICATOR FUNCTION =====
-function showSyncIndicator(status) {
-    let indicator = document.getElementById('sync-indicator');
-    if (!indicator) {
-        indicator = document.createElement('div');
-        indicator.id = 'sync-indicator';
-        document.body.appendChild(indicator);
-    }
-
-    indicator.style.display = 'block';
-
-    if (status === 'syncing') {
-        indicator.style.background = '#3498db';
-        indicator.style.color = 'white';
-        indicator.textContent = '☁️ Зачувување...';
-    } else if (status === 'success') {
-        indicator.style.background = '#27ae60';
-        indicator.style.color = 'white';
-        indicator.textContent = '✓ Зачувано';
-        setTimeout(() => { indicator.style.display = 'none'; }, 2000);
-    } else if (status === 'error') {
-        indicator.style.background = '#e74c3c';
-        indicator.style.color = 'white';
-        indicator.textContent = '✗ Грешка!';
-        setTimeout(() => { indicator.style.display = 'none'; }, 3000);
-    }
-}
-
-// ===== AUTH =====
-function signIn() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const signInPromise = isMobile ? auth.signInWithRedirect(provider) : auth.signInWithPopup(provider);
-    signInPromise.catch(err => {
-        console.error('Sign-in error:', err);
-        const el = document.getElementById('login-error');
-        el.textContent = 'Грешка при најава: ' + (err.message || err.code);
-        el.style.display = 'block';
-    });
-}
-
-function signOut() {
-    auth.signOut();
-}
-
-function isAllowed(user) {
-    if (!user || !user.email) return false;
-    if (ALLOWED_EMAILS.length === 0) return true;
-    return ALLOWED_EMAILS.map(e => e.toLowerCase()).includes(user.email.toLowerCase());
-}
-
-auth.getRedirectResult().catch(err => {
-    console.error('Redirect sign-in error:', err);
-    const el = document.getElementById('login-error');
-    el.textContent = 'Грешка при најава: ' + (err.message || err.code);
-    el.style.display = 'block';
-});
-
-auth.onAuthStateChanged(user => {
-    const overlay = document.getElementById('login-overlay');
-    const errEl = document.getElementById('login-error');
-
-    if (user && isAllowed(user)) {
-        overlay.style.display = 'none';
-        document.getElementById('user-email').textContent = user.email;
-        startInvoicesListener();
-    } else {
-        if (user && !isAllowed(user)) {
-            errEl.textContent = 'Немате пристап со ' + user.email;
-            errEl.style.display = 'block';
-            auth.signOut();
-        }
-        overlay.style.display = 'flex';
-        stopInvoicesListener();
-        invoices = [];
-        applyFilters();
-    }
-});
-
-// ===== FIRESTORE =====
-function startInvoicesListener() {
-    if (unsubscribeInvoices) return;
-    unsubscribeInvoices = invoicesRef.onSnapshot(snapshot => {
-        invoices = snapshot.docs.map(d => {
-            const data = d.data();
-            return {
-                id: d.id,
-                companyName: data.companyName || '',
-                invoiceNumber: data.invoiceNumber || '',
-                bankAccount: data.bankAccount || '',
-                amount: parseFloat(data.amount) || 0,
-                entryDate: data.entryDate || '',
-                dueDate: data.dueDate || '',
-                notes: data.notes || '',
-                payments: Array.isArray(data.payments) ? data.payments : [],
-                timestamp: data.timestamp || ''
-            };
-        });
-        // Најнови прво (по датум на внес), потоа по време на креирање
-        invoices.sort((a, b) => {
-            if (a.entryDate !== b.entryDate) return (b.entryDate || '').localeCompare(a.entryDate || '');
-            return (b.timestamp || '').localeCompare(a.timestamp || '');
-        });
-        applyFilters();
-        console.log('✅ Firestore:', invoices.length, 'фактури');
-    }, err => {
-        console.error('❌ Firestore listener error:', err);
-        showSyncIndicator('error');
-        alert('Грешка при вчитување од Firebase: ' + err.message);
-    });
-}
-
-function stopInvoicesListener() {
-    if (unsubscribeInvoices) {
-        unsubscribeInvoices();
-        unsubscribeInvoices = null;
-    }
-}
-
-function findInvoice(id) {
-    return invoices.find(inv => inv.id === id);
-}
-
-async function saveInvoiceToFirestore(invoice) {
-    try {
-        showSyncIndicator('syncing');
-        const { id, ...data } = invoice;
-        await invoicesRef.doc(id).set(data);
-        showSyncIndicator('success');
-        return true;
-    } catch (error) {
-        console.error('❌ Firestore save error:', error);
-        showSyncIndicator('error');
-        alert('Грешка при зачувување: ' + error.message);
-        return false;
-    }
-}
-
-async function deleteInvoiceFromFirestore(id) {
-    try {
-        showSyncIndicator('syncing');
-        await invoicesRef.doc(id).delete();
-        showSyncIndicator('success');
-        return true;
-    } catch (error) {
-        console.error('❌ Firestore delete error:', error);
-        showSyncIndicator('error');
-        alert('Грешка при бришење: ' + error.message);
-        return false;
-    }
-}
-
-// ===== MAIN APPLICATION CODE =====
-let invoices = [];
-let currentFilter = 'all';
-
-function generateId() {
-    return 'inv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-}
-
-function parseAmountInput(raw) {
-    // Прифаќа: 10915 | 10915.50 | 10915,50 | 10.915,50 | 10,915.50
-    let v = String(raw || '').trim().replace(/\s/g, '');
-    if (!v) return NaN;
-    const lastComma = v.lastIndexOf(','), lastDot = v.lastIndexOf('.');
-    if (lastComma > -1 && lastDot > -1) {
-        // двата присутни: последниот е децимален сепаратор
-        v = lastComma > lastDot ? v.replace(/\./g, '').replace(',', '.') : v.replace(/,/g, '');
-    } else if (lastComma > -1) {
-        // само запирка: ако по неа има точно 2 цифри → децимала, инаку илјади
-        v = (v.length - lastComma - 1 === 2) ? v.replace(',', '.') : v.replace(/,/g, '');
-    } else if (lastDot > -1) {
-        // само точка: ако по неа има точно 3 цифри и нема други точки → илјади (10.915)
-        const parts = v.split('.');
-        if (parts.length === 2 && parts[1].length === 3) v = parts.join('');
-    }
-    const n = parseFloat(v);
-    return isNaN(n) ? NaN : Math.round(n * 100) / 100;
-}
-
-function getInvoiceStatus(invoice) {
-    const totalPaid = invoice.payments ? invoice.payments.reduce((sum, p) => sum + p.amount, 0) : 0;
-    const remaining = invoice.amount - totalPaid;
-    
-    if (Math.abs(remaining) < 0.005) return 'paid';
-    if (totalPaid > 0) return 'partial';
-    return 'unpaid';
-}
-
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('mk-MK', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount) + ' ден';
-}
-
-function formatDate(dateString) {
-    if (!dateString) return '';
-    const parts = String(dateString).split('T')[0].split('-');
-    if (parts.length !== 3) return dateString;
-    return `${parts[2]}.${parts[1]}.${parts[0]}`;
-}
-
-function getYearFilteredInvoices() {
-    const yearEl = document.getElementById('filterYear');
-    const year = yearEl ? yearEl.value : 'all';
-    if (year === 'all') return invoices;
-    return invoices.filter(inv => (inv.entryDate || '').startsWith(year));
-}
-
-function updateSummary() {
-    const stats = {
-        total: 0,
-        paid: 0,
-        partial: 0,
-        unpaid: 0,
-        totalAmount: 0,
-        paidAmount: 0,
-        unpaidAmount: 0
-    };
-
-    getYearFilteredInvoices().forEach(invoice => {
-        stats.total++;
-        stats.totalAmount += invoice.amount;
-        
-        const totalPaid = invoice.payments ? invoice.payments.reduce((sum, p) => sum + p.amount, 0) : 0;
-        stats.paidAmount += totalPaid;
-        stats.unpaidAmount += (invoice.amount - totalPaid);
-        
-        const status = getInvoiceStatus(invoice);
-        if (status === 'paid') stats.paid++;
-        else if (status === 'partial') stats.partial++;
-        else stats.unpaid++;
-    });
-
-    document.getElementById('totalInvoices').textContent = stats.total;
-    document.getElementById('paidInvoices').textContent = stats.paid;
-    document.getElementById('partialInvoices').textContent = stats.partial;
-    document.getElementById('unpaidInvoices').textContent = stats.unpaid;
-    document.getElementById('totalAmount').textContent = formatCurrency(stats.totalAmount);
-    document.getElementById('paidAmount').textContent = formatCurrency(stats.paidAmount);
-    document.getElementById('unpaidAmount').textContent = formatCurrency(stats.unpaidAmount);
-}
-
-function renderTable() {
-    const tbody = document.getElementById('invoiceTableBody');
-    const globalSearch = document.getElementById('globalSearch').value.toLowerCase();
-    const statusFilter = document.getElementById('filterStatus').value;
-    const companyFilter = document.getElementById('filterCompany').value.toLowerCase();
-    const accountFilter = document.getElementById('filterAccount').value.toLowerCase();
-    const invoiceNumFilter = document.getElementById('filterInvoiceNumber').value.toLowerCase();
-    const dateFrom = document.getElementById('filterDateFrom').value;
-    const dateTo = document.getElementById('filterDateTo').value;
-
-    let filtered = getYearFilteredInvoices().filter(invoice => {
-        const status = getInvoiceStatus(invoice);
-
-        // Status filter
-        if (statusFilter !== 'all' && status !== statusFilter) return false;
-
-        // Company filter
-        if (companyFilter && !invoice.companyName.toLowerCase().includes(companyFilter)) return false;
-
-        // Account filter
-        if (accountFilter && (!invoice.bankAccount || !invoice.bankAccount.toLowerCase().includes(accountFilter))) return false;
-
-        // Invoice number filter
-        if (invoiceNumFilter && !invoice.invoiceNumber.toLowerCase().includes(invoiceNumFilter)) return false;
-
-        // Date filters
-        if (dateFrom && invoice.entryDate < dateFrom) return false;
-        if (dateTo && invoice.entryDate > dateTo) return false;
-
-        // Global search
-        if (globalSearch) {
-            const searchStr = `${invoice.companyName} ${invoice.invoiceNumber} ${invoice.bankAccount || ''} ${invoice.amount} ${invoice.notes || ''}`.toLowerCase();
-            if (!searchStr.includes(globalSearch)) return false;
-        }
-
-        return true;
-    });
-
-    tbody.innerHTML = '';
-    
-    filtered.forEach((invoice, index) => {
-        const totalPaid = invoice.payments ? invoice.payments.reduce((sum, p) => sum + p.amount, 0) : 0;
-        const remaining = invoice.amount - totalPaid;
-        const status = getInvoiceStatus(invoice);
-        
-        let statusText = '';
-        let statusClass = '';
-        
-        if (status === 'paid') {
-            statusText = '✓ Платена';
-            statusClass = 'status-paid';
-        } else if (status === 'partial') {
-            statusText = '⚡ Делумно';
-            statusClass = 'status-partial';
-        } else {
-            statusText = '⏳ Неплатена';
-            statusClass = 'status-unpaid';
-        }
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${invoice.companyName}</td>
-            <td>${invoice.invoiceNumber}</td>
-            <td>${invoice.bankAccount || '-'}</td>
-            <td>${formatCurrency(invoice.amount)}</td>
-            <td>${formatCurrency(totalPaid)}</td>
-            <td>${formatCurrency(remaining)}</td>
-            <td class="${statusClass}">${statusText}</td>
-            <td>${formatDate(invoice.entryDate)}</td>
-            <td>${formatDate(invoice.dueDate)}</td>
-            <td class="actions">
-                <button class="btn btn-info btn-table" onclick="openPaymentModal('${invoice.id}')">💰</button>
-                <button class="btn btn-warning btn-table" onclick="editInvoice('${invoice.id}')">✏️</button>
-                <button class="btn btn-danger btn-table" onclick="deleteInvoice('${invoice.id}')">🗑️</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-
-    // Збир за прикажаните (филтрирани) фактури
-    const tfoot = document.getElementById('invoiceTableFoot');
-    if (filtered.length > 0) {
-        const sumAmount = filtered.reduce((sum, inv) => sum + inv.amount, 0);
-        const sumPaid = filtered.reduce((sum, inv) => sum + (inv.payments ? inv.payments.reduce((a, p) => a + p.amount, 0) : 0), 0);
-        const sumRemaining = sumAmount - sumPaid;
-        tfoot.innerHTML = `
-            <tr style="background: #f0f4ff; font-weight: 700; border-top: 3px solid #667eea;">
-                <td></td>
-                <td colspan="3">Збир за прикажани (${filtered.length} ${filtered.length === 1 ? 'фактура' : 'фактури'})</td>
-                <td>${formatCurrency(sumAmount)}</td>
-                <td style="color: #27ae60;">${formatCurrency(sumPaid)}</td>
-                <td style="color: #e74c3c;">${formatCurrency(sumRemaining)}</td>
-                <td colspan="4"></td>
-            </tr>`;
-    } else {
-        tfoot.innerHTML = '';
-    }
-
-    updateSummary();
-}
-
-function applyFilters() {
-    renderTable();
-}
-
-function filterByStatus(status) {
-    currentFilter = status;
-    document.getElementById('filterStatus').value = status;
-    
-    // Update active card
-    document.querySelectorAll('.summary-card').forEach(card => {
-        card.classList.remove('active');
-    });
-    document.getElementById('card-' + status).classList.add('active');
-    
-    applyFilters();
-}
-
-async function deleteInvoice(id) {
-    if (!confirm('Дали сте сигурни дека сакате да ја избришете оваа фактура?')) return;
-
-    await deleteInvoiceFromFirestore(id);
-}
-
-function editInvoice(id) {
-    const invoice = findInvoice(id);
-    if (!invoice) return;
-
-    document.getElementById('editIndex').value = id;
-    document.getElementById('editCompanyName').value = invoice.companyName;
-    document.getElementById('editInvoiceNumber').value = invoice.invoiceNumber;
-    document.getElementById('editBankAccount').value = invoice.bankAccount || '';
-    document.getElementById('editAmount').value = invoice.amount;
-    document.getElementById('editEntryDate').value = invoice.entryDate;
-    document.getElementById('editDueDate').value = invoice.dueDate;
-    document.getElementById('editNotes').value = invoice.notes || '';
-    
-    document.getElementById('editModal').style.display = 'block';
-}
-
-function closeEditModal() {
-    document.getElementById('editModal').style.display = 'none';
-}
-
-function openPaymentModal(id) {
-    const invoice = findInvoice(id);
-    if (!invoice) return;
-    const totalPaid = Math.round((invoice.payments ? invoice.payments.reduce((sum, p) => sum + p.amount, 0) : 0) * 100) / 100;
-    const remaining = Math.round((invoice.amount - totalPaid) * 100) / 100;
-    const progressPercent = invoice.amount > 0 ? Math.min(100, totalPaid / invoice.amount * 100).toFixed(1) : '0.0';
-
-    let paymentsHTML = '';
-    if (invoice.payments && invoice.payments.length > 0) {
-        paymentsHTML = invoice.payments.map((payment, pIdx) => `
-            <div class="payment-item">
-                <div class="payment-item-info">
-                    <div class="payment-item-date">${formatDate(payment.date)}</div>
-                    <div class="payment-item-amount">${formatCurrency(payment.amount)}</div>
-                    ${payment.note ? `<div style="font-size: 0.9em; color: #666;">${payment.note}</div>` : ''}
-                </div>
-                <div style="display: flex; gap: 5px;">
-                    <button class="btn btn-danger btn-small" onclick="deletePayment('${id}', ${pIdx})">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-    } else {
-        paymentsHTML = '<p style="text-align: center; color: #999;">Нема евидентирани плаќања</p>';
-    }
-
-    const content = `
-        <h3>${invoice.companyName} - ${invoice.invoiceNumber}</h3>
-        <p style="color: #667eea; font-size: 1.05em; margin-bottom: 15px;">💳 Жиро сметка: <strong style="font-family: monospace;">${invoice.bankAccount || '— нема внесено —'}</strong></p>
-
-        <div class="payment-info">
-            <div class="payment-info-row">
-                <span>Вкупен износ:</span>
-                <strong>${formatCurrency(invoice.amount)}</strong>
-            </div>
-            <div class="payment-info-row">
-                <span>Платено:</span>
-                <strong style="color: #27ae60;">${formatCurrency(totalPaid)}</strong>
-            </div>
-            <div class="payment-info-row">
-                <span>Преостанато:</span>
-                <strong style="color: #e74c3c;">${formatCurrency(remaining)}</strong>
-            </div>
-        </div>
-
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: ${progressPercent}%">
-                ${progressPercent}%
-            </div>
-        </div>
-
-        ${remaining >= 0.005 ? `
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <h4 style="margin-bottom: 15px;">Додади ново плаќање</h4>
-            <div class="form-grid">
+    <!-- Add Revenue Source Modal -->
+    <div class="modal" id="addRevenueSourceModal">
+        <div class="modal-content">
+            <div class="modal-header"><div class="modal-title">Додади Нов Извор</div></div>
+            <div class="modal-body">
                 <div class="form-group">
-                    <label>Износ (ден)</label>
-                    <input type="text" inputmode="decimal" id="newPaymentAmount" placeholder="Макс: ${remaining.toFixed(2)}">
-                </div>
-                <div class="form-group">
-                    <label>Датум</label>
-                    <input type="date" id="newPaymentDate" value="${new Date().toISOString().split('T')[0]}">
-                </div>
-                <div class="form-group full-width">
-                    <label>Забелешка</label>
-                    <input type="text" id="newPaymentNote" placeholder="Опционално">
+                    <label class="form-label">Име на Извор</label>
+                    <input type="text" id="newRevenueSourceName" class="form-input" placeholder="На пример: Продажба на Опрема...">
                 </div>
             </div>
-            <button class="btn btn-success" onclick="addPayment('${id}')">✓ Додади плаќање</button>
-            <button class="btn btn-primary" onclick="document.getElementById('newPaymentAmount').value = '${remaining.toFixed(2)}'; addPayment('${id}')">💯 Плати го целиот остаток (${formatCurrency(remaining)})</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeAddRevenueSourceDialog()">Откажи</button>
+                <button type="button" class="btn btn-primary" onclick="saveNewRevenueSource()">Додади</button>
+            </div>
         </div>
-        ` : ''}
+    </div>
 
-        <h4 style="margin-top: 20px; margin-bottom: 10px;">Историја на плаќања</h4>
-        <div class="payments-list">
-            ${paymentsHTML}
+    <!-- Edit Revenue Source Modal -->
+    <div class="modal" id="editRevenueSourceModal">
+        <div class="modal-content">
+            <div class="modal-header"><div class="modal-title">Измени Извор</div></div>
+            <div class="modal-body">
+                <input type="hidden" id="editRevenueSourceOldName">
+                <div class="form-group">
+                    <label class="form-label">Ново Име</label>
+                    <input type="text" id="editRevenueSourceNewName" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditRevenueSourceDialog()">Откажи</button>
+                <button type="button" class="btn btn-primary" onclick="saveEditedRevenueSource()">Зачувај</button>
+            </div>
         </div>
-    `;
+    </div>
 
-    document.getElementById('paymentModalContent').innerHTML = content;
-    document.getElementById('paymentModal').style.display = 'block';
-}
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            getDocs, 
+            getDoc,
+            setDoc, 
+            addDoc, 
+            updateDoc, 
+            deleteDoc,
+            onSnapshot,
+            query,
+            orderBy,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-function closePaymentModal() {
-    document.getElementById('paymentModal').style.display = 'none';
-}
-
-async function addPayment(id) {
-    const amount = parseAmountInput(document.getElementById('newPaymentAmount').value);
-    const date = document.getElementById('newPaymentDate').value;
-    const note = document.getElementById('newPaymentNote').value;
-
-    if (!amount || amount <= 0) {
-        alert('Внесете валиден износ!');
-        return;
-    }
-
-    const invoice = findInvoice(id);
-    if (!invoice) return;
-    const totalPaid = Math.round((invoice.payments ? invoice.payments.reduce((sum, p) => sum + p.amount, 0) : 0) * 100) / 100;
-    const remaining = Math.round((invoice.amount - totalPaid) * 100) / 100;
-
-    if (amount > remaining + 0.005) {
-        alert(`Износот не може да биде поголем од преостанатиот долг: ${formatCurrency(remaining)}`);
-        return;
-    }
-
-    if (!invoice.payments) {
-        invoice.payments = [];
-    }
-
-    invoice.payments.push({
-        amount: amount,
-        date: date,
-        note: note
-    });
-
-    await saveInvoiceToFirestore(invoice);
-    openPaymentModal(id);
-}
-
-async function deletePayment(id, paymentIndex) {
-    if (!confirm('Дали сте сигурни дека сакате да го избришете ова плаќање?')) return;
-
-    const invoice = findInvoice(id);
-    if (!invoice) return;
-    invoice.payments.splice(paymentIndex, 1);
-
-    await saveInvoiceToFirestore(invoice);
-    openPaymentModal(id);
-}
-
-function exportToExcel() {
-    const data = getYearFilteredInvoices().map(invoice => {
-        const totalPaid = invoice.payments ? invoice.payments.reduce((sum, p) => sum + p.amount, 0) : 0;
-        const remaining = invoice.amount - totalPaid;
-        const status = getInvoiceStatus(invoice);
-        
-        return {
-            'Компанија': invoice.companyName,
-            'Број фактура': invoice.invoiceNumber,
-            'Број на сметка': invoice.bankAccount || '',
-            'Износ': invoice.amount,
-            'Платено': totalPaid,
-            'Преостанато': remaining,
-            'Статус': status === 'paid' ? 'Платена' : status === 'partial' ? 'Делумно' : 'Неплатена',
-            'Датум на фактура': invoice.entryDate,
-            'Рок за плаќање': invoice.dueDate,
-            'Забелешки': invoice.notes || ''
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4GCTMV6FyacDB0OWL1pH496Fw2RSk0YI",
+            authDomain: "hotel-de-koka-finance.firebaseapp.com",
+            projectId: "hotel-de-koka-finance",
+            storageBucket: "hotel-de-koka-finance.firebasestorage.app",
+            messagingSenderId: "179949925880",
+            appId: "1:179949925880:web:79b0d805bbc22dbbb5120d"
         };
-    });
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Фактури');
-    
-    const timestamp = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `hotel-koka-fakturi-${timestamp}.xlsx`);
-}
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-function showReport() {
-    const stats = {
-        total: 0,
-        paid: 0,
-        partial: 0,
-        unpaid: 0,
-        totalAmount: 0,
-        paidAmount: 0,
-        unpaidAmount: 0
-    };
-
-    getYearFilteredInvoices().forEach(invoice => {
-        stats.total++;
-        stats.totalAmount += invoice.amount;
+        // Make Firebase available globally
+        window.firebaseDB = db;
+        window.firebaseCollection = collection;
+        window.firebaseDoc = doc;
+        window.firebaseGetDocs = getDocs;
+        window.firebaseGetDoc = getDoc;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseUpdateDoc = updateDoc;
+        window.firebaseDeleteDoc = deleteDoc;
+        window.firebaseOnSnapshot = onSnapshot;
+        window.firebaseQuery = query;
+        window.firebaseOrderBy = orderBy;
+        window.firebaseServerTimestamp = serverTimestamp;
         
-        const totalPaid = invoice.payments ? invoice.payments.reduce((sum, p) => sum + p.amount, 0) : 0;
-        stats.paidAmount += totalPaid;
-        stats.unpaidAmount += (invoice.amount - totalPaid);
-        
-        const status = getInvoiceStatus(invoice);
-        if (status === 'paid') stats.paid++;
-        else if (status === 'partial') stats.partial++;
-        else stats.unpaid++;
-    });
+        // Trigger initialization
+        window.dispatchEvent(new Event('firebaseReady'));
+    </script>
 
-    const content = `
-        <div style="text-align: center; margin-bottom: 30px;">
-            <h3>Финансиски Извештај — ${document.getElementById('filterYear').value === 'all' ? 'сите години' : document.getElementById('filterYear').value}</h3>
-            <p style="color: #666;">Генериран на: ${new Date().toLocaleString('mk-MK')}</p>
-        </div>
+    <script>
+        // Default values
+        const defaultCategories = {
+            expense: [
+                'Одржување', 'Плати за Вработени', 'Струја',
+                'Плаќање на Фирми Добавувачи (по Фактура)',
+                'Плаќање во Готово на Фирми (Роба)',
+                'Плаќање на Рати за Кредит'
+            ],
+            revenueSources: [
+                'Промет од Хотел', 'Прилив од Кирии', 'Прилив од Трета Страна'
+            ]
+        };
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
-            <div style="background: #667eea; color: white; padding: 20px; border-radius: 10px; text-align: center;">
-                <h4>Вкупно Фактури</h4>
-                <p style="font-size: 2em; font-weight: bold;">${stats.total}</p>
-            </div>
-            <div style="background: #27ae60; color: white; padding: 20px; border-radius: 10px; text-align: center;">
-                <h4>Платени</h4>
-                <p style="font-size: 2em; font-weight: bold;">${stats.paid}</p>
-            </div>
-            <div style="background: #f39c12; color: white; padding: 20px; border-radius: 10px; text-align: center;">
-                <h4>Делумно</h4>
-                <p style="font-size: 2em; font-weight: bold;">${stats.partial}</p>
-            </div>
-            <div style="background: #e74c3c; color: white; padding: 20px; border-radius: 10px; text-align: center;">
-                <h4>Неплатени</h4>
-                <p style="font-size: 2em; font-weight: bold;">${stats.unpaid}</p>
-            </div>
-        </div>
+        // App state
+        let categories = { expense: [...defaultCategories.expense], revenueSources: [...defaultCategories.revenueSources] };
+        let transactions = [];
+        let filteredTransactions = [];
+        let currentPeriod = 'all';
+        let charts = {};
+        let firebaseInitialized = false;
 
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
-            <h4 style="margin-bottom: 15px;">Финансиски Преглед</h4>
-            <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd;">
-                <span>Вкупна сума на фактури:</span>
-                <strong>${formatCurrency(stats.totalAmount)}</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd;">
-                <span>Платено:</span>
-                <strong style="color: #27ae60;">${formatCurrency(stats.paidAmount)}</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 10px; border-top: 2px solid #667eea; margin-top: 10px;">
-                <span><strong>Преостанато за наплата:</strong></span>
-                <strong style="color: #e74c3c; font-size: 1.2em;">${formatCurrency(stats.unpaidAmount)}</strong>
-            </div>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px;">
-            <button class="btn btn-success" onclick="exportToExcel()">📥 Извези во Excel</button>
-        </div>
-    `;
-
-    document.getElementById('reportContent').innerHTML = content;
-    document.getElementById('reportModal').style.display = 'block';
-}
-
-function closeReportModal() {
-    document.getElementById('reportModal').style.display = 'none';
-}
-
-// Event Listeners
-document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const invoice = {
-        id: generateId(),
-        companyName: document.getElementById('companyName').value,
-        invoiceNumber: document.getElementById('invoiceNumber').value,
-        bankAccount: document.getElementById('bankAccount').value,
-        amount: parseFloat(document.getElementById('amount').value) || 0,
-        entryDate: document.getElementById('entryDate').value,
-        dueDate: document.getElementById('dueDate').value,
-        notes: document.getElementById('notes').value,
-        payments: [],
-        timestamp: new Date().toISOString()
-    };
-
-    const initialStatus = document.querySelector('input[name="initialStatus"]:checked')?.value || 'unpaid';
-
-    if (initialStatus === 'paid') {
-        invoice.payments.push({
-            amount: invoice.amount,
-            date: invoice.entryDate,
-            note: 'Платено (иницијално)'
-        });
-    } else if (initialStatus === 'partial') {
-        const partialVal = parseFloat(document.getElementById('partialPaidAmount').value || 0);
-        if (!(partialVal > 0)) { 
-            alert('Внеси делумно платена сума!'); 
-            return; 
-        }
-        if (partialVal >= invoice.amount) { 
-            alert('Делумната сума мора да е помала од вкупната сума!'); 
-            return; 
+        // Number formatting
+        function formatNumber(num) {
+            return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
-        invoice.payments.push({
-            amount: partialVal,
-            date: invoice.entryDate,
-            note: 'Делумно платено (иницијално)'
-        });
-    }
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
 
-    const ok = await saveInvoiceToFirestore(invoice);
-    if (!ok) return;
-    closeAddInvoiceModal();
+        function showNotification(message, type = 'success') {
+            showToast(message, type);
+        }
 
-    this.reset();
-    const partialInput = document.getElementById('partialPaidAmount');
-    if (partialInput) partialInput.value = '';
-    updateInitialPaymentUI();
-    document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('dueDate').value = new Date().toISOString().split('T')[0];
-});
+        // Update sync status
+        function updateSyncStatus(connected) {
+            const status = document.getElementById('syncStatus');
+            if (connected) {
+                status.className = 'sync-status connected';
+                status.innerHTML = '<span class="sync-dot"></span><span>Cloud Sync</span>';
+            } else {
+                status.className = 'sync-status disconnected';
+                status.innerHTML = '<span class="sync-dot"></span><span>Offline</span>';
+            }
+        }
 
-document.getElementById('editForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+        // Firebase Functions
+        async function loadCategoriesFromFirebase() {
+            try {
+                const docRef = window.firebaseDoc(window.firebaseDB, 'settings', 'categories');
+                const docSnap = await window.firebaseGetDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    categories = {
+                        expense: data.expense || defaultCategories.expense,
+                        revenueSources: data.revenueSources || defaultCategories.revenueSources
+                    };
+                } else {
+                    // Initialize with defaults
+                    await window.firebaseSetDoc(docRef, defaultCategories);
+                    categories = { ...defaultCategories };
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                showToast('Грешка при вчитување на категории', 'error');
+            }
+        }
 
-    const id = document.getElementById('editIndex').value;
-    const invoice = findInvoice(id);
-    if (!invoice) return;
-    
-    const newAmount = parseFloat(document.getElementById('editAmount').value) || 0;
-    const alreadyPaid = invoice.payments ? invoice.payments.reduce((sum, p) => sum + p.amount, 0) : 0;
-    if (newAmount + 0.005 < alreadyPaid) {
-        alert(`Износот не може да биде помал од веќе платеното: ${formatCurrency(alreadyPaid)}. Прво избришете плаќања.`);
-        return;
-    }
+        async function saveCategoriestoFirebase() {
+            try {
+                const docRef = window.firebaseDoc(window.firebaseDB, 'settings', 'categories');
+                await window.firebaseSetDoc(docRef, categories);
+            } catch (error) {
+                console.error('Error saving categories:', error);
+                showToast('Грешка при зачувување', 'error');
+            }
+        }
 
-    invoice.companyName = document.getElementById('editCompanyName').value;
-    invoice.invoiceNumber = document.getElementById('editInvoiceNumber').value;
-    invoice.bankAccount = document.getElementById('editBankAccount').value;
-    invoice.amount = newAmount;
-    invoice.entryDate = document.getElementById('editEntryDate').value;
-    invoice.dueDate = document.getElementById('editDueDate').value;
-    invoice.notes = document.getElementById('editNotes').value;
-    invoice.timestamp = new Date().toISOString();
-
-    const ok = await saveInvoiceToFirestore(invoice);
-    if (!ok) return;
-    closeEditModal();
-});
-
-document.getElementById('globalSearch').addEventListener('input', applyFilters);
-document.getElementById('filterStatus').addEventListener('change', applyFilters);
-document.getElementById('filterCompany').addEventListener('input', applyFilters);
-document.getElementById('filterAccount').addEventListener('input', applyFilters);
-document.getElementById('filterInvoiceNumber').addEventListener('input', applyFilters);
-document.getElementById('filterDateFrom').addEventListener('change', applyFilters);
-document.getElementById('filterDateTo').addEventListener('change', applyFilters);
-document.getElementById('filterYear').addEventListener('change', applyFilters);
-
-function clearFilters() {
-    ['globalSearch', 'filterCompany', 'filterAccount', 'filterInvoiceNumber', 'filterDateFrom', 'filterDateTo']
-        .forEach(idEl => { document.getElementById(idEl).value = ''; });
-    document.getElementById('filterStatus').value = 'all';
-    currentFilter = 'all';
-    document.querySelectorAll('.summary-card').forEach(card => card.classList.remove('active'));
-    applyFilters();
-}
-
-// ===== JSON BACKUP EXPORT =====
-function exportBackupJSON() {
-    if (invoices.length === 0) {
-        alert('Нема податоци за backup.');
-        return;
-    }
-    const data = invoices.map(inv => ({
-        id: inv.id,
-        companyName: inv.companyName,
-        invoiceNumber: inv.invoiceNumber,
-        bankAccount: inv.bankAccount || '',
-        amount: inv.amount,
-        entryDate: inv.entryDate || '',
-        dueDate: inv.dueDate || '',
-        notes: inv.notes || '',
-        payments: inv.payments || [],
-        timestamp: inv.timestamp || ''
-    }));
-    const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const stamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
-    a.href = url;
-    a.download = `hotel-koka-backup-${stamp}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-// ===== JSON IMPORT (Firestore batch) =====
-async function importFromJSON(event) {
-    const file = event.target.files[0];
-    event.target.value = '';
-    if (!file) return;
-
-    let data;
-    try {
-        data = JSON.parse(await file.text());
-    } catch (e) {
-        alert('Фајлот не е валиден JSON.');
-        return;
-    }
-    if (!Array.isArray(data) || data.length === 0) {
-        alert('JSON фајлот не содржи листа на фактури.');
-        return;
-    }
-
-    const valid = data.filter(inv => inv && inv.id && inv.companyName && inv.invoiceNumber && typeof inv.amount === 'number');
-    if (valid.length === 0) {
-        alert('Нема валидни фактури во фајлот.');
-        return;
-    }
-
-    const existing = valid.filter(inv => findInvoice(inv.id)).length;
-    const msg = `Пронајдени ${valid.length} фактури во фајлот.` +
-        (existing > 0 ? `\n${existing} веќе постојат и ќе бидат ажурирани (нема дупликати).` : '') +
-        `\n\nДа продолжам со увозот?`;
-    if (!confirm(msg)) return;
-
-    try {
-        showSyncIndicator('syncing');
-        const CHUNK = 400;
-        for (let i = 0; i < valid.length; i += CHUNK) {
-            const batch = db.batch();
-            valid.slice(i, i + CHUNK).forEach(inv => {
-                const { id, ...rest } = inv;
-                batch.set(invoicesRef.doc(String(id)), {
-                    companyName: rest.companyName || '',
-                    invoiceNumber: rest.invoiceNumber || '',
-                    bankAccount: rest.bankAccount || '',
-                    amount: parseFloat(rest.amount) || 0,
-                    entryDate: rest.entryDate || '',
-                    dueDate: rest.dueDate || '',
-                    notes: rest.notes || '',
-                    payments: Array.isArray(rest.payments) ? rest.payments : [],
-                    timestamp: rest.timestamp || new Date().toISOString()
+        function subscribeToTransactions() {
+            const q = window.firebaseQuery(
+                window.firebaseCollection(window.firebaseDB, 'transactions'),
+                window.firebaseOrderBy('createdAt', 'desc')
+            );
+            
+            window.firebaseOnSnapshot(q, (snapshot) => {
+                transactions = [];
+                snapshot.forEach((doc) => {
+                    transactions.push({ id: doc.id, ...doc.data() });
                 });
+                filteredTransactions = [...transactions];
+                updateAllViews();
+                updateSyncStatus(true);
+            }, (error) => {
+                console.error('Snapshot error:', error);
+                updateSyncStatus(false);
             });
-            await batch.commit();
         }
-        showSyncIndicator('success');
-        alert(`✓ Увезени ${valid.length} фактури.`);
-    } catch (error) {
-        console.error('Import error:', error);
-        showSyncIndicator('error');
-        alert('Грешка при увоз: ' + error.message);
-    }
-}
 
-window.onclick = function(event) {
-    const editModal = document.getElementById('editModal');
-    const reportModal = document.getElementById('reportModal');
-    const paymentModal = document.getElementById('paymentModal');
-    const addModal = document.getElementById('addInvoiceModal');
-    
-    if (event.target == editModal) closeEditModal();
-    if (event.target == reportModal) closeReportModal();
-    if (event.target == paymentModal) closePaymentModal();
-    if (event.target == addModal) closeAddInvoiceModal();
-}
-
-// Initialize dates
-document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
-document.getElementById('dueDate').value = new Date().toISOString().split('T')[0];
-
-// Add Invoice Modal Functions
-function openAddInvoiceModal() {
-    const modal = document.getElementById('addInvoiceModal');
-    modal.style.display = 'block';
-
-    const today = new Date().toISOString().split('T')[0];
-    const entry = document.getElementById('entryDate');
-    const due = document.getElementById('dueDate');
-    if (entry && !entry.value) entry.value = today;
-    if (due && !due.value) due.value = today;
-
-    updateInitialPaymentUI();
-
-    setTimeout(() => {
-        const el = document.getElementById('companyName');
-        if (el) el.focus();
-    }, 50);
-}
-
-function closeAddInvoiceModal() {
-    document.getElementById('addInvoiceModal').style.display = 'none';
-}
-
-function updateInitialPaymentUI() {
-    const statusEl = document.querySelector('input[name="initialStatus"]:checked');
-    const status = statusEl ? statusEl.value : 'unpaid';
-    const group = document.getElementById('partialPaidGroup');
-    if (group) group.style.display = (status === 'partial') ? 'block' : 'none';
-}
-
-// Radio listeners
-document.querySelectorAll('input[name="initialStatus"]').forEach(r => {
-    r.addEventListener('change', updateInitialPaymentUI);
-});
-updateInitialPaymentUI();
-
-// ESC to close modal
-document.addEventListener('keydown', function(event) {
-    if (event.key !== 'Escape') return;
-    const addModal = document.getElementById('addInvoiceModal');
-    if (addModal && addModal.style.display === 'block') closeAddInvoiceModal();
-});
-
-// Company history autocomplete
-let companyHistory = [];
-
-function updateCompanyHistory() {
-    const companies = {};
-    invoices.forEach(inv => {
-        const key = inv.companyName.toLowerCase();
-        if (!companies[key]) {
-            companies[key] = {
-                name: inv.companyName,
-                count: 0,
-                lastAccount: inv.bankAccount,
-                lastAmount: inv.amount
-            };
+        async function addTransactionToFirebase(transaction) {
+            try {
+                const docRef = await window.firebaseAddDoc(
+                    window.firebaseCollection(window.firebaseDB, 'transactions'),
+                    { ...transaction, createdAt: window.firebaseServerTimestamp() }
+                );
+                return docRef.id;
+            } catch (error) {
+                console.error('Error adding transaction:', error);
+                showToast('Грешка при зачувување', 'error');
+                throw error;
+            }
         }
-        companies[key].count++;
-        companies[key].lastAccount = inv.bankAccount || companies[key].lastAccount;
-    });
-    
-    companyHistory = Object.values(companies).sort((a, b) => b.count - a.count);
-}
 
-document.getElementById('companyName').addEventListener('input', function() {
-    const value = this.value.toLowerCase();
-    const dropdown = document.getElementById('companyHistory');
-    
-    if (value.length < 2) {
-        dropdown.classList.remove('show');
-        return;
-    }
+        async function updateTransactionInFirebase(id, updates) {
+            try {
+                const docRef = window.firebaseDoc(window.firebaseDB, 'transactions', id);
+                await window.firebaseUpdateDoc(docRef, updates);
+            } catch (error) {
+                console.error('Error updating transaction:', error);
+                showToast('Грешка при ажурирање', 'error');
+                throw error;
+            }
+        }
 
-    updateCompanyHistory();
-    const matches = companyHistory.filter(c => c.name.toLowerCase().includes(value));
-    
-    if (matches.length === 0) {
-        dropdown.classList.remove('show');
-        return;
-    }
+        async function deleteTransactionFromFirebase(id) {
+            try {
+                await window.firebaseDeleteDoc(window.firebaseDoc(window.firebaseDB, 'transactions', id));
+            } catch (error) {
+                console.error('Error deleting transaction:', error);
+                showToast('Грешка при бришење', 'error');
+                throw error;
+            }
+        }
 
-    dropdown.innerHTML = matches.slice(0, 5).map((company, i) => `
-        <div class="history-item" data-idx="${i}">
-            <div class="history-item-company">${company.name}</div>
-            <div class="history-item-details">
-                ${company.lastAccount ? `<span class="history-item-account">${company.lastAccount}</span>` : ''}
-                <span class="history-badge">${company.count} фактури</span>
-            </div>
-        </div>
-    `).join('');
-    
-    dropdown.querySelectorAll('.history-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const c = matches[parseInt(item.dataset.idx)];
-            fillCompanyData(c.name, c.lastAccount || '');
+        // Initialize app
+        window.addEventListener('firebaseReady', async () => {
+            console.log('Firebase ready, initializing...');
+            
+            // Set up UI
+            const today = new Date();
+            document.getElementById('currentDate').textContent = today.toLocaleDateString('mk-MK', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            ['revenueDate', 'expenseDate'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.valueAsDate = today;
+            });
+
+            // Load data from Firebase
+            await loadCategoriesFromFirebase();
+            updateExpenseCategorySelect();
+            updateRevenueSourceSelect();
+            
+            // Subscribe to real-time updates
+            subscribeToTransactions();
+            
+            // Hide loading
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                firebaseInitialized = true;
+                showToast('Поврзано со Firebase!', 'success');
+            }, 1000);
         });
-    });
 
-    dropdown.classList.add('show');
-});
+        // Navigation
+        function navigateTo(page, element) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (element) element.classList.add('active');
 
-function fillCompanyData(name, account) {
-    document.getElementById('companyName').value = name;
-    if (account) document.getElementById('bankAccount').value = account;
-    document.getElementById('companyHistory').classList.remove('show');
-}
+            document.querySelectorAll('.page-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(page).classList.add('active');
 
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('#companyName') && !e.target.closest('#companyHistory')) {
-        document.getElementById('companyHistory').classList.remove('show');
-    }
-});
+            const titles = {
+                dashboard: ['Dashboard', 'Преглед на финансиското работење'],
+                revenue: ['Дневен Промет', 'Запишување и преглед на промет'],
+                expenses: ['Трошоци', 'Запишување и преглед на трошоци'],
+                transactions: ['Сите Трансакции', 'Комплетен преглед и филтрирање'],
+                reports: ['Извештаи', 'Периодични финансиски извештаи'],
+                analytics: ['Аналитика', 'Графички анализи и трендови']
+            };
 
-// Initialize on page load
-window.addEventListener('load', function() {
-    console.log('🚀 Hotel Koka Dashboard loading (Firebase)...');
-    applyFilters();
-});
+            if (titles[page]) {
+                document.getElementById('pageTitle').textContent = titles[page][0];
+                document.getElementById('pageSubtitle').textContent = titles[page][1];
+            }
 
-</script>
+            if (page === 'dashboard') updateDashboard();
+            if (page === 'analytics') updateTrendChart();
+        }
+        window.navigateTo = navigateTo;
+
+        // Revenue Form
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('revenueForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const source = document.getElementById('revenueSource').value;
+                const amount = parseFloat(document.getElementById('revenueTotalAmount').value) || 0;
+                const date = document.getElementById('revenueDate').value;
+                const description = document.getElementById('revenueDescription').value;
+                
+                const transaction = {
+                    date: date,
+                    type: 'income',
+                    category: source,
+                    source: source,
+                    amount: amount,
+                    description: description
+                };
+                
+                try {
+                    await addTransactionToFirebase(transaction);
+                    this.reset();
+                    document.getElementById('revenueDate').valueAsDate = new Date();
+                    showToast('Промет зачуван во Cloud!', 'success');
+                } catch (error) {
+                    showToast('Грешка при зачувување', 'error');
+                }
+            });
+
+            // Expense Form
+            document.getElementById('expenseForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const transaction = {
+                    date: document.getElementById('expenseDate').value,
+                    type: 'expense',
+                    category: document.getElementById('expenseCategory').value,
+                    amount: parseFloat(document.getElementById('expenseAmount').value),
+                    description: document.getElementById('expenseDescription').value
+                };
+
+                try {
+                    await addTransactionToFirebase(transaction);
+                    this.reset();
+                    document.getElementById('expenseDate').valueAsDate = new Date();
+                    showToast('Трошок зачуван во Cloud!', 'success');
+                } catch (error) {
+                    showToast('Грешка при зачувување', 'error');
+                }
+            });
+
+            // Edit Form
+            document.getElementById('editForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const id = document.getElementById('editId').value;
+
+                const updates = {
+                    date: document.getElementById('editDate').value,
+                    type: document.getElementById('editType').value,
+                    category: document.getElementById('editCategory').value,
+                    amount: parseFloat(document.getElementById('editAmount').value),
+                    description: document.getElementById('editDescription').value
+                };
+
+                if (updates.type === 'income') {
+                    updates.source = updates.category;
+                }
+
+                try {
+                    await updateTransactionInFirebase(id, updates);
+                    closeEditModal();
+                    showToast('Трансакцијата е изменета!', 'success');
+                } catch (error) {
+                    showToast('Грешка при ажурирање', 'error');
+                }
+            });
+        });
+
+        function updateExpenseCategorySelect() {
+            const select = document.getElementById('expenseCategory');
+            select.innerHTML = '<option value="">Избери...</option>';
+            categories.expense.forEach(cat => {
+                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+            renderExpenseCategoryManager();
+        }
+
+        function updateRevenueSourceSelect() {
+            const select = document.getElementById('revenueSource');
+            if (!select) return;
+            select.innerHTML = '<option value="">Избери извор...</option>';
+            categories.revenueSources.forEach(source => {
+                select.innerHTML += `<option value="${source}">${source}</option>`;
+            });
+            renderRevenueSourceManager();
+        }
+
+        function renderExpenseCategoryManager() {
+            const container = document.getElementById('expenseCategoryManager');
+            if (!container) return;
+            
+            if (categories.expense.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="empty-text">Нема категории</div></div>';
+                return;
+            }
+            
+            container.innerHTML = categories.expense.map(cat => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--gray-lightest); border-radius: 8px;">
+                    <span style="font-size: 14px; font-weight: 500; color: var(--dark);">${cat}</span>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="action-btn edit" onclick="showEditCategoryDialog('${cat.replace(/'/g, "\\'")}')">✏️</button>
+                        <button class="action-btn delete" onclick="deleteExpenseCategory('${cat.replace(/'/g, "\\'")}')">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRevenueSourceManager() {
+            const container = document.getElementById('revenueSourceManager');
+            if (!container) return;
+            
+            if (categories.revenueSources.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="empty-text">Нема извори</div></div>';
+                return;
+            }
+            
+            container.innerHTML = categories.revenueSources.map(source => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--gray-lightest); border-radius: 8px;">
+                    <span style="font-size: 14px; font-weight: 500; color: var(--dark);">${source}</span>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="action-btn edit" onclick="showEditRevenueSourceDialog('${source.replace(/'/g, "\\'")}')">✏️</button>
+                        <button class="action-btn delete" onclick="deleteRevenueSource('${source.replace(/'/g, "\\'")}')">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateAllViews() {
+            updateDashboard();
+            updateRevenueView();
+            updateExpenseView();
+            updateTransactionsList();
+            updateReports();
+            populateFilterCategories();
+        }
+
+        function updateDashboard() {
+            const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            const balance = income - expenses;
+
+            document.getElementById('dashTotalRevenue').textContent = formatNumber(income) + ' ден';
+            document.getElementById('dashTotalExpenses').textContent = formatNumber(expenses) + ' ден';
+            document.getElementById('dashNetBalance').textContent = formatNumber(balance) + ' ден';
+
+            const recent = transactions.slice(0, 5);
+            const recentHTML = recent.length === 0 ? 
+                '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Нема трансакции</div></div>' :
+                recent.map(t => createTransactionHTML(t)).join('');
+            document.getElementById('dashRecentTransactions').innerHTML = recentHTML;
+
+            updateDashboardCharts();
+        }
+
+        function updateDashboardCharts() {
+            const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+
+            const ctx1 = document.getElementById('dashMainChart');
+            if (ctx1) {
+                if (charts.dashMain) charts.dashMain.destroy();
+                charts.dashMain = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Промет', 'Трошоци'],
+                        datasets: [{
+                            data: [income, expenses],
+                            backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(239, 68, 68, 0.8)'],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+
+            const categoryTotals = {};
+            transactions.filter(t => t.type === 'expense').forEach(t => {
+                categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+            });
+
+            const ctx2 = document.getElementById('dashCategoryChart');
+            if (ctx2 && Object.keys(categoryTotals).length > 0) {
+                if (charts.dashCategory) charts.dashCategory.destroy();
+                charts.dashCategory = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(categoryTotals),
+                        datasets: [{
+                            data: Object.values(categoryTotals),
+                            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+
+        function updateRevenueView() {
+            const revenueTransactions = transactions.filter(t => t.type === 'income');
+            const total = revenueTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+            document.getElementById('revTotalRevenue').textContent = formatNumber(total) + ' ден';
+
+            const breakdownContainer = document.getElementById('revenueSourceBreakdown');
+            if (breakdownContainer) {
+                if (categories.revenueSources.length === 0) {
+                    breakdownContainer.innerHTML = '<div class="empty-state" style="padding: 20px;"><div class="empty-text">Нема извори</div></div>';
+                } else {
+                    const sourceColors = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+                    
+                    breakdownContainer.innerHTML = categories.revenueSources.map((source, index) => {
+                        const sourceTotal = revenueTransactions
+                            .filter(t => t.source === source)
+                            .reduce((sum, t) => sum + t.amount, 0);
+                        const color = sourceColors[index % sourceColors.length];
+                        return `
+                            <div class="quick-stat" style="border-left-color: ${color};">
+                                <div class="quick-stat-label">${source}</div>
+                                <div class="quick-stat-value">${formatNumber(sourceTotal)} ден</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            const listHTML = revenueTransactions.slice(0, 10).length === 0 ?
+                '<div class="empty-state"><div class="empty-icon">💵</div><div class="empty-text">Нема записи</div></div>' :
+                revenueTransactions.slice(0, 10).map(t => createTransactionHTML(t)).join('');
+            document.getElementById('revenueList').innerHTML = listHTML;
+        }
+
+        function updateExpenseView() {
+            const expenseTransactions = transactions.filter(t => t.type === 'expense');
+            const total = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+            document.getElementById('expTotalExpenses').textContent = formatNumber(total) + ' ден';
+
+            const categoryTotals = {};
+            expenseTransactions.forEach(t => {
+                categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+            });
+
+            const breakdownHTML = Object.keys(categoryTotals).length === 0 ?
+                '<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-text">Нема трошоци</div></div>' :
+                Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]).map(([cat, amt]) => `
+                    <div class="quick-stat" style="border-left-color: var(--danger-color)">
+                        <div class="quick-stat-label">${cat}</div>
+                        <div class="quick-stat-value">${formatNumber(amt)} ден</div>
+                    </div>
+                `).join('');
+            document.getElementById('expenseBreakdown').innerHTML = breakdownHTML;
+
+            const listHTML = expenseTransactions.slice(0, 10).length === 0 ?
+                '<div class="empty-state"><div class="empty-icon">💸</div><div class="empty-text">Нема трошоци</div></div>' :
+                expenseTransactions.slice(0, 10).map(t => createTransactionHTML(t)).join('');
+            document.getElementById('expenseList').innerHTML = listHTML;
+        }
+
+        function createTransactionHTML(t) {
+            const date = new Date(t.date).toLocaleDateString('mk-MK', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const icon = t.type === 'income' ? '💵' : '💸';
+            const iconClass = t.type === 'income' ? 'income' : 'expense';
+            const amountClass = t.type === 'income' ? 'income' : 'expense';
+            const sign = t.type === 'income' ? '+' : '-';
+            const categoryDisplay = t.type === 'income' ? (t.source || t.category) : t.category;
+
+            return `
+                <div class="transaction-item">
+                    <div class="transaction-icon ${iconClass}">${icon}</div>
+                    <div class="transaction-details">
+                        <div class="transaction-category">${categoryDisplay}</div>
+                        <div class="transaction-meta">
+                            <span>${date}</span>
+                            ${t.description ? `<span>• ${t.description}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="transaction-amount ${amountClass}">${sign}${formatNumber(t.amount)} ден</div>
+                    <div class="transaction-actions">
+                        <button class="action-btn edit" onclick="editTransaction('${t.id}')" title="Измени">✏️</button>
+                        <button class="action-btn delete" onclick="deleteTransaction('${t.id}')" title="Избриши">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateTransactionsList() {
+            const listHTML = filteredTransactions.length === 0 ?
+                '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Нема трансакции</div></div>' :
+                filteredTransactions.map(t => createTransactionHTML(t)).join('');
+            document.getElementById('allTransactionsList').innerHTML = listHTML;
+        }
+
+        function populateFilterCategories() {
+            const select = document.getElementById('filterCategory');
+            const allCats = [...categories.revenueSources, ...categories.expense];
+            select.innerHTML = '<option value="">Сите</option>' + allCats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+        }
+
+        function applyFilters() {
+            const type = document.getElementById('filterType').value;
+            const category = document.getElementById('filterCategory').value;
+            const dateFrom = document.getElementById('filterDateFrom').value;
+            const dateTo = document.getElementById('filterDateTo').value;
+
+            filteredTransactions = transactions.filter(t => {
+                if (type && t.type !== type) return false;
+                if (category && t.category !== category) return false;
+                if (dateFrom && t.date < dateFrom) return false;
+                if (dateTo && t.date > dateTo) return false;
+                return true;
+            });
+
+            updateTransactionsList();
+        }
+        window.applyFilters = applyFilters;
+
+        function resetFilters() {
+            document.getElementById('filterType').value = '';
+            document.getElementById('filterCategory').value = '';
+            document.getElementById('filterDateFrom').value = '';
+            document.getElementById('filterDateTo').value = '';
+            filteredTransactions = [...transactions];
+            updateTransactionsList();
+        }
+        window.resetFilters = resetFilters;
+
+        function selectPeriod(period) {
+            currentPeriod = period;
+            updateReports();
+        }
+        window.selectPeriod = selectPeriod;
+
+        function updateReports() {
+            const now = new Date();
+            let startDate, endDate;
+
+            switch(currentPeriod) {
+                case 'today':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+                    break;
+                case 'week':
+                    const day = now.getDay();
+                    const diff = day === 0 ? -6 : 1 - day;
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
+                    endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case 'month':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                    break;
+                case 'year':
+                    startDate = new Date(now.getFullYear(), 0, 1);
+                    endDate = new Date(now.getFullYear() + 1, 0, 1);
+                    break;
+                case 'all':
+                    startDate = new Date(0);
+                    endDate = new Date();
+                    break;
+            }
+
+            const periodTxns = transactions.filter(t => {
+                const tDate = new Date(t.date);
+                return tDate >= startDate && tDate < endDate;
+            });
+
+            const income = periodTxns.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const expenses = periodTxns.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+
+            document.getElementById('reportIncome').textContent = formatNumber(income) + ' ден';
+            document.getElementById('reportExpenses').textContent = formatNumber(expenses) + ' ден';
+            document.getElementById('reportBalance').textContent = formatNumber(income - expenses) + ' ден';
+            document.getElementById('reportCount').textContent = periodTxns.length;
+
+            const breakdown = {};
+            periodTxns.forEach(t => {
+                if (!breakdown[t.category]) breakdown[t.category] = { income: 0, expense: 0 };
+                breakdown[t.category][t.type] += t.amount;
+            });
+
+            const breakdownHTML = Object.keys(breakdown).length === 0 ?
+                '<div class="empty-state"><div class="empty-text">Нема податоци</div></div>' :
+                Object.entries(breakdown).map(([cat, amts]) => `
+                    <div class="quick-stat">
+                        <div class="quick-stat-label">${cat}</div>
+                        <div style="display: flex; gap: 16px; font-size: 14px; margin-top: 8px;">
+                            <span style="color: var(--success-color);">Промет: ${formatNumber(amts.income)} ден</span>
+                            <span style="color: var(--danger-color);">Трошок: ${formatNumber(amts.expense)} ден</span>
+                        </div>
+                    </div>
+                `).join('');
+            document.getElementById('reportBreakdown').innerHTML = breakdownHTML;
+        }
+
+        function updateTrendChart() {
+            const months = [];
+            const incomeData = [];
+            const expenseData = [];
+
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                months.push(date.toLocaleDateString('mk-MK', { month: 'short', year: 'numeric' }));
+
+                const start = new Date(date.getFullYear(), date.getMonth(), 1);
+                const end = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+
+                const monthTxns = transactions.filter(t => {
+                    const tDate = new Date(t.date);
+                    return tDate >= start && tDate < end;
+                });
+
+                incomeData.push(monthTxns.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0));
+                expenseData.push(monthTxns.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0));
+            }
+
+            const ctx = document.getElementById('trendChart');
+            if (ctx) {
+                if (charts.trend) charts.trend.destroy();
+                charts.trend = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            { label: 'Промет', data: incomeData, borderColor: 'rgb(16, 185, 129)', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.4 },
+                            { label: 'Трошоци', data: expenseData, borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.4 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
+            }
+        }
+
+        // Category management
+        function showAddExpenseCategoryDialog() {
+            document.getElementById('addCategoryModal').classList.add('active');
+            document.getElementById('newCategoryName').value = '';
+            document.getElementById('newCategoryName').focus();
+        }
+        window.showAddExpenseCategoryDialog = showAddExpenseCategoryDialog;
+
+        function closeAddCategoryDialog() {
+            document.getElementById('addCategoryModal').classList.remove('active');
+        }
+        window.closeAddCategoryDialog = closeAddCategoryDialog;
+
+        async function saveNewCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            if (!name) { showToast('Внесете име!', 'error'); return; }
+            if (categories.expense.includes(name)) { showToast('Категоријата веќе постои!', 'error'); return; }
+            
+            categories.expense.push(name);
+            await saveCategoriestoFirebase();
+            updateExpenseCategorySelect();
+            document.getElementById('expenseCategory').value = name;
+            closeAddCategoryDialog();
+            showToast('Категоријата е додадена!', 'success');
+        }
+        window.saveNewCategory = saveNewCategory;
+
+        function showEditCategoryDialog(name) {
+            document.getElementById('editCategoryModal').classList.add('active');
+            document.getElementById('editCategoryOldName').value = name;
+            document.getElementById('editCategoryNewName').value = name;
+            document.getElementById('editCategoryNewName').focus();
+        }
+        window.showEditCategoryDialog = showEditCategoryDialog;
+
+        function closeEditCategoryDialog() {
+            document.getElementById('editCategoryModal').classList.remove('active');
+        }
+        window.closeEditCategoryDialog = closeEditCategoryDialog;
+
+        async function saveEditedCategory() {
+            const oldName = document.getElementById('editCategoryOldName').value;
+            const newName = document.getElementById('editCategoryNewName').value.trim();
+            if (!newName) { showToast('Внесете име!', 'error'); return; }
+            if (newName === oldName) { closeEditCategoryDialog(); return; }
+            if (categories.expense.includes(newName)) { showToast('Веќе постои!', 'error'); return; }
+            
+            const index = categories.expense.indexOf(oldName);
+            if (index !== -1) categories.expense[index] = newName;
+            
+            // Update all transactions
+            const txnsToUpdate = transactions.filter(t => t.type === 'expense' && t.category === oldName);
+            for (const txn of txnsToUpdate) {
+                await updateTransactionInFirebase(txn.id, { category: newName });
+            }
+            
+            await saveCategoriestoFirebase();
+            updateExpenseCategorySelect();
+            closeEditCategoryDialog();
+            showToast('Категоријата е изменета!', 'success');
+        }
+        window.saveEditedCategory = saveEditedCategory;
+
+        async function deleteExpenseCategory(name) {
+            const inUse = transactions.some(t => t.type === 'expense' && t.category === name);
+            if (inUse) {
+                if (!confirm(`Категоријата "${name}" се користи. Дали да ја избришеш?`)) return;
+            } else {
+                if (!confirm(`Избриши "${name}"?`)) return;
+            }
+            
+            categories.expense = categories.expense.filter(c => c !== name);
+            await saveCategoriestoFirebase();
+            updateExpenseCategorySelect();
+            showToast('Избришана!', 'success');
+        }
+        window.deleteExpenseCategory = deleteExpenseCategory;
+
+        // Revenue source management
+        function showAddRevenueSourceDialog() {
+            document.getElementById('addRevenueSourceModal').classList.add('active');
+            document.getElementById('newRevenueSourceName').value = '';
+            document.getElementById('newRevenueSourceName').focus();
+        }
+        window.showAddRevenueSourceDialog = showAddRevenueSourceDialog;
+
+        function closeAddRevenueSourceDialog() {
+            document.getElementById('addRevenueSourceModal').classList.remove('active');
+        }
+        window.closeAddRevenueSourceDialog = closeAddRevenueSourceDialog;
+
+        async function saveNewRevenueSource() {
+            const name = document.getElementById('newRevenueSourceName').value.trim();
+            if (!name) { showToast('Внесете име!', 'error'); return; }
+            if (categories.revenueSources.includes(name)) { showToast('Веќе постои!', 'error'); return; }
+            
+            categories.revenueSources.push(name);
+            await saveCategoriestoFirebase();
+            updateRevenueSourceSelect();
+            updateRevenueView();
+            document.getElementById('revenueSource').value = name;
+            closeAddRevenueSourceDialog();
+            showToast('Изворот е додаден!', 'success');
+        }
+        window.saveNewRevenueSource = saveNewRevenueSource;
+
+        function showEditRevenueSourceDialog(name) {
+            document.getElementById('editRevenueSourceModal').classList.add('active');
+            document.getElementById('editRevenueSourceOldName').value = name;
+            document.getElementById('editRevenueSourceNewName').value = name;
+            document.getElementById('editRevenueSourceNewName').focus();
+        }
+        window.showEditRevenueSourceDialog = showEditRevenueSourceDialog;
+
+        function closeEditRevenueSourceDialog() {
+            document.getElementById('editRevenueSourceModal').classList.remove('active');
+        }
+        window.closeEditRevenueSourceDialog = closeEditRevenueSourceDialog;
+
+        async function saveEditedRevenueSource() {
+            const oldName = document.getElementById('editRevenueSourceOldName').value;
+            const newName = document.getElementById('editRevenueSourceNewName').value.trim();
+            if (!newName) { showToast('Внесете име!', 'error'); return; }
+            if (newName === oldName) { closeEditRevenueSourceDialog(); return; }
+            if (categories.revenueSources.includes(newName)) { showToast('Веќе постои!', 'error'); return; }
+            
+            const index = categories.revenueSources.indexOf(oldName);
+            if (index !== -1) categories.revenueSources[index] = newName;
+            
+            // Update all transactions
+            const txnsToUpdate = transactions.filter(t => t.type === 'income' && t.source === oldName);
+            for (const txn of txnsToUpdate) {
+                await updateTransactionInFirebase(txn.id, { source: newName, category: newName });
+            }
+            
+            await saveCategoriestoFirebase();
+            updateRevenueSourceSelect();
+            updateRevenueView();
+            closeEditRevenueSourceDialog();
+            showToast('Изворот е изменет!', 'success');
+        }
+        window.saveEditedRevenueSource = saveEditedRevenueSource;
+
+        async function deleteRevenueSource(name) {
+            const inUse = transactions.some(t => t.type === 'income' && t.source === name);
+            if (inUse) {
+                if (!confirm(`Изворот "${name}" се користи. Дали да го избришеш?`)) return;
+            } else {
+                if (!confirm(`Избриши "${name}"?`)) return;
+            }
+            
+            categories.revenueSources = categories.revenueSources.filter(s => s !== name);
+            await saveCategoriestoFirebase();
+            updateRevenueSourceSelect();
+            updateRevenueView();
+            showToast('Избришан!', 'success');
+        }
+        window.deleteRevenueSource = deleteRevenueSource;
+
+        // Edit transaction
+        function editTransaction(id) {
+            const t = transactions.find(tx => tx.id === id);
+            if (!t) return;
+
+            document.getElementById('editId').value = t.id;
+            document.getElementById('editDate').value = t.date;
+            document.getElementById('editType').value = t.type;
+
+            const editCat = document.getElementById('editCategory');
+            editCat.innerHTML = '<option value="">Избери...</option>';
+            const cats = t.type === 'income' ? categories.revenueSources : categories.expense;
+            cats.forEach(cat => {
+                editCat.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+            editCat.value = t.category;
+
+            document.getElementById('editAmount').value = t.amount;
+            document.getElementById('editDescription').value = t.description || '';
+
+            document.getElementById('editModal').classList.add('active');
+        }
+        window.editTransaction = editTransaction;
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+        window.closeEditModal = closeEditModal;
+
+        async function deleteTransaction(id) {
+            if (!confirm('Избриши ја трансакцијата?')) return;
+            try {
+                await deleteTransactionFromFirebase(id);
+                showToast('Избришана!', 'success');
+            } catch (error) {
+                showToast('Грешка!', 'error');
+            }
+        }
+        window.deleteTransaction = deleteTransaction;
+
+        // Export
+        function exportToExcel() {
+            const data = filteredTransactions.map(t => ({
+                'Датум': t.date,
+                'Тип': t.type === 'income' ? 'Промет' : 'Трошок',
+                'Категорија': t.category,
+                'Износ': t.amount,
+                'Опис': t.description || ''
+            }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Трансакции");
+            XLSX.writeFile(wb, `HotelDeKOKA-${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+        window.exportToExcel = exportToExcel;
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(18);
+            doc.text('Hotel De KOKA - Izvestaj', 20, 20);
+            doc.setFontSize(12);
+            
+            const income = filteredTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const expenses = filteredTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            
+            let y = 40;
+            doc.text(`Promet: ${formatNumber(income)} den`, 20, y); y += 10;
+            doc.text(`Troskoci: ${formatNumber(expenses)} den`, 20, y); y += 10;
+            doc.text(`Bilans: ${formatNumber(income - expenses)} den`, 20, y);
+            
+            doc.save(`HotelDeKOKA-${new Date().toISOString().split('T')[0]}.pdf`);
+        }
+        window.exportToPDF = exportToPDF;
+    </script>
 </body>
 </html>
